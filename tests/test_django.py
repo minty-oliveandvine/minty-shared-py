@@ -88,6 +88,15 @@ def test_http_error_and_unauthorized(client):
     assert client.get("/api/private", HTTP_AUTHORIZATION="Bearer good").status_code == 200
 
 
+def test_a_raised_http404_and_ninjas_authorization_error_use_the_error_key(client):
+    resp = client.get("/api/missing")
+    assert (resp.status_code, resp.json()) == (404, {"error": "I couldn't find that bill."})
+    resp = client.get("/api/forbidden")
+    assert (resp.status_code, resp.json()) == (403, {"error": "Forbidden"})
+    resp = client.get("/api/nowhere")
+    assert resp.status_code == 404
+
+
 def test_unhandled_is_the_house_sentence_and_never_the_detail(client):
     resp = client.get("/api/boom")
     assert resp.status_code == 500

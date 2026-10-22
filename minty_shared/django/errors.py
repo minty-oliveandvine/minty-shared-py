@@ -9,7 +9,8 @@
 * Any further key a service routes on (Petty Cash's ``to``, ``report_id``) rides along.
 
 Statuses: input the schema refuses is **422**; a rule's refusal keeps the status the rule names
-(400/402/403/404/409/422...); an unauthenticated call is **401** ``{"error": "Unauthorized"}``;
+(400/402/403/404/409/422...); an unauthenticated call is **401** ``{"error": "Unauthorized"}``; a raised ``Http404`` is
+**404** with its message;
 anything unhandled is **500** with one house sentence - its detail goes to the log, never the
 caller.
 
@@ -23,13 +24,14 @@ import logging
 from collections.abc import Callable, Iterable, Mapping
 from typing import Any
 
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from ninja import NinjaAPI
 from ninja.errors import AuthenticationError, HttpError
 from ninja.errors import ValidationError as SchemaValidationError
 
 HOUSE_FALLBACK = "Something went wrong on my end. Mind trying again?"
 UNAUTHORIZED = "Unauthorized"
+NOT_FOUND = "I couldn't find that."
 
 # django-ninja puts the param source in the first segment of ``loc`` and, for a body model,
 # the schema argument's name in the second. Neither means anything to the person reading it.
@@ -168,7 +170,14 @@ def register_error_handlers(
 
     @api.exception_handler(HttpError)
     def on_http_error(request: Any, exc: HttpError):  # pyright: ignore[reportUnusedFunction]
+        # Also ninja's AuthorizationError (403) and Throttled (429), both HttpErrors.
         return api.create_response(request, {"error": str(exc)}, status=exc.status_code)
+
+    @api.exception_handler(Http404)
+    def on_not_found(request: Any, exc: Http404):  # pyright: ignore[reportUnusedFunction]
+        # ninja's own default answers {"detail": "Not Found"}; a raised Http404's message is
+        # the sentence ("Bill not found"), else a generic one.
+        return api.create_response(request, {"error": str(exc) or NOT_FOUND}, status=404)
 
     @api.exception_handler(Exception)
     def on_unhandled(request: Any, exc: Exception):  # pyright: ignore[reportUnusedFunction]

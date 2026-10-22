@@ -71,6 +71,20 @@ def http(request):
     raise HttpError(404, "I couldn't find that bill.")
 
 
+@api.get("/missing")
+def missing(request):
+    from django.http import Http404
+
+    raise Http404("I couldn't find that bill.")
+
+
+@api.get("/forbidden")
+def forbidden(request):
+    from ninja.errors import AuthorizationError
+
+    raise AuthorizationError()
+
+
 @api.get("/boom")
 def boom(request):
     raise RuntimeError("database fell over: secret-detail")
