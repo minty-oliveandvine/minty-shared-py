@@ -48,10 +48,13 @@ engine log through, so their messages stay byte-identical.
 Pin a tag in `requirements.txt` (tags are **immutable**: a change is a new tag):
 
 ```
-minty-shared @ git+https://github.com/minty-oliveandvine/minty-shared-py@v0.1
+minty-shared @ https://github.com/minty-oliveandvine/minty-shared-py/archive/refs/tags/v0.1.tar.gz
 ```
 
-The repo is public, so CI and Render install it over HTTPS with no key. While developing against a
+The tag's **archive**, not `git+https://…@v0.1`: the `python:3.13-slim` images the Django APIs
+build from have no git, so a `git+` pin installs in CI and fails on Render. The repo is public, so
+the archive downloads with no key. A project built by hatchling (Minty) also needs
+`[tool.hatch.metadata] allow-direct-references = true`. While developing against a
 local checkout, run `python -m pip install -e C:\Github\minty-shared-py` in the consumer's venv.
 
 ## Developing
