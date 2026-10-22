@@ -31,7 +31,9 @@ loggers, so propagated records get it too.
   ```python
   LOGGING = logging_config(
       {"billing-api": "core.log", "billing-api.http": "api.log"},
-      log_dir=BASE_DIR / "logs", no_propagate=["billing-api.http"], level=LOG_LEVEL,
+      log_dir=BASE_DIR / "logs",
+      no_propagate=["billing-api.http"],
+      level=LOG_LEVEL,
   )
   ```
 
