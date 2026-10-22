@@ -1,9 +1,35 @@
 # minty-shared-py
 
-Minty's shared Python for every backend: Flask (`Minty`) and the four Django APIs. It is
-backend-only and **standard library only**, with no Django and no Flask, so each framework's glue
-(a middleware, a `before_request`) stays in its own repo. This is where the modernisation plan's
-`minty_shared` starts (`Minty/docs/modernisation/modernisation_plan.md`, Part 2).
+Minty's shared Python for every backend: Flask (`Minty`) and the four Django APIs. This is where
+the modernisation plan's `minty_shared` starts (`Minty/docs/modernisation/modernisation_plan.md`,
+Part 2). Models, enums, the permission policy and entitlements are **not** here: they belong to
+the planned `minty-db` package.
+
+| Module | Needs | What |
+|---|---|---|
+| `minty_shared.logctx`, `minty_shared.log` | stdlib | the one log line, its trace/user/entity/step context, loguru's call shape over `logging` |
+| `minty_shared.config` | stdlib | `APP_ENV`, flags, the `SECRET_KEY` placeholder refusal, `DATABASE_URL` (identifier-only `?schema=`), `S3_URL`, `SMTP_URL`, `PREVIEW_ORIGIN_REGEX`, and Django's `DATABASES`/`EMAIL_*` shapes |
+| `minty_shared.money` | stdlib | `HKD 1,234.50`: the code, a non-breaking space, the currency's places; `format_price` drops a whole `.00`; no currency says so |
+| `minty_shared.time` | stdlib + `tzdata` | `DEFAULT_ENTITY_TIMEZONE`, a stored instant on a company's calendar, `validate_timezone` |
+| `minty_shared.tokens` | extra `jwt` | `decode_bearer` (60 s clock skew everywhere), `service_assertion`, `assertion_headers` |
+| `minty_shared.django.middleware` | extra `django` | `RequestLoggingMiddleware` (settings `MINTY_HTTP_LOGGER`, optional `MINTY_LOGGABLE_PATH`) |
+| `minty_shared.django.errors` | extra `django` | the envelope below: `register_error_handlers`, `ApiRefusal`, `validation_message`, `field_messages` |
+| `minty_shared.django.client` | extra `django` | `forward`/`proxy`: call another Minty backend as the current caller |
+| `minty_shared.testing` | extra `testing` | the Postgres-harness pytest plugin (`pytest_plugins = ["minty_shared.testing.pg"]`) and the source-walking guards |
+
+## The error envelope
+
+Every API answers a refusal the same way:
+
+```
+{"error": "<a sentence to show>", "fields": {"amount": "The amount is still empty. Add the amount to continue."}}
+```
+
+- `fields` appears only when input is refused. Any key a service routes on (Petty Cash's `to`,
+  `report_id`) rides along.
+- Schema refusals are **422**. A rule's own refusal keeps the status the rule names. 401 is
+  `{"error": "Unauthorized"}`. 500 is one house sentence, with the detail in the log, never in the
+  response.
 
 ## The log line
 
@@ -48,8 +74,10 @@ engine log through, so their messages stay byte-identical.
 Pin a tag in `requirements.txt` (tags are **immutable**: a change is a new tag):
 
 ```
-minty-shared @ https://github.com/minty-oliveandvine/minty-shared-py/archive/refs/tags/v0.1.tar.gz
+minty-shared[jwt,django,testing] @ https://github.com/minty-oliveandvine/minty-shared-py/archive/refs/tags/v0.2.tar.gz
 ```
+
+A Django API takes all three extras; Flask takes `[jwt]`.
 
 The tag's **archive**, not `git+https://…@v0.1`: the `python:3.13-slim` images the Django APIs
 build from have no git, so a `git+` pin installs in CI and fails on Render. The repo is public, so
