@@ -1,0 +1,77 @@
+"""A ``logger`` with loguru's call shape over the standard library.
+
+Flask's code (and the subscription engine ported from it) logs as loguru did:
+``logger.info("renewals: {} issued for {}", n, user_id)`` - ``str.format`` placeholders filled
+from the positional arguments, plus ``logger.exception`` inside an ``except``. ``BraceLogger``
+keeps those call sites and their text unchanged on a ``logging.Logger``: ``{}`` messages are
+``str.format``-ed, ``%s`` messages are ``%``-formatted, and a message with no arguments is
+written as it is (an f-string's braces are never re-read). Formatting happens only when the
+level is enabled, as loguru did.
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+
+class BraceLogger:
+    def __init__(self, name: str):
+        self._std = logging.getLogger(name)
+
+    @property
+    def name(self) -> str:
+        return self._std.name
+
+    @staticmethod
+    def _render(message: Any, args: tuple[Any, ...], kwargs: dict[str, Any]) -> str:
+        text = str(message)
+        if not args and not kwargs:
+            return text
+        if "{" in text:
+            try:
+                return text.format(*args, **kwargs)
+            except (IndexError, KeyError, ValueError):
+                return text + " " + " ".join(repr(a) for a in args)
+        try:
+            return text % args
+        except (TypeError, ValueError):
+            return text + " " + " ".join(repr(a) for a in args)
+
+    def _log(
+        self,
+        level: int,
+        message: Any,
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
+        *,
+        exc_info: bool = False,
+    ) -> None:
+        if not self._std.isEnabledFor(level):
+            return
+        self._std.log(level, self._render(message, args, kwargs), exc_info=exc_info, stacklevel=3)
+
+    def isEnabledFor(self, level: int) -> bool:  # noqa: N802 - logging.Logger's name
+        return self._std.isEnabledFor(level)
+
+    def debug(self, message: Any, *args: Any, **kwargs: Any) -> None:
+        self._log(logging.DEBUG, message, args, kwargs)
+
+    def info(self, message: Any, *args: Any, **kwargs: Any) -> None:
+        self._log(logging.INFO, message, args, kwargs)
+
+    def warning(self, message: Any, *args: Any, **kwargs: Any) -> None:
+        self._log(logging.WARNING, message, args, kwargs)
+
+    def error(self, message: Any, *args: Any, **kwargs: Any) -> None:
+        self._log(logging.ERROR, message, args, kwargs)
+
+    def exception(self, message: Any, *args: Any, **kwargs: Any) -> None:
+        self._log(logging.ERROR, message, args, kwargs, exc_info=True)
+
+    def critical(self, message: Any, *args: Any, **kwargs: Any) -> None:
+        self._log(logging.CRITICAL, message, args, kwargs)
+
+
+def get_logger(name: str) -> BraceLogger:
+    return BraceLogger(name)

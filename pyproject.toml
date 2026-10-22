@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "minty-shared"
+version = "0.1.0"
+description = "Minty's shared Python for every backend: the one log line format (standard library only)."
+requires-python = ">=3.13"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6", "pyright>=1.1.380"]
+
+[tool.setuptools]
+packages = ["minty_shared"]
+
+[tool.setuptools.package-data]
+minty_shared = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N"]
+ignore = [
+  # long docstrings and comments are the house style (as in minty-subscription-api)
+  "E501",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["minty_shared"]
+
+[tool.pyright]
+include = ["minty_shared"]
+pythonVersion = "3.13"
+typeCheckingMode = "strict"

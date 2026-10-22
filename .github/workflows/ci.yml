@@ -1,0 +1,27 @@
+# Lint, types and the unit tests.
+#
+# NOT a call into minty-oliveandvine/.github, unlike every app repo: a library has no service to
+# boot or schema to build, and a reusable workflow with one caller is not shared CI (the same
+# judgement minty-shared-ts makes). The day a second Python package (minty-db) exists, this
+# becomes `py-package.yml` in that repo. Recorded in Minty/docs/features/ci.md.
+name: ci
+
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          # What every consumer runs (Flask and the four Django APIs, 2026-10-22).
+          python-version: "3.13"
+      - run: python -m pip install -e ".[dev]"
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: pyright
+      - run: pytest -q
