@@ -31,6 +31,13 @@ def test_a_naive_instant_is_utc_and_late_utc_is_tomorrow_in_hong_kong():
     assert mtime.in_zone(aware, HK).hour == 4
 
 
+def test_any_tzinfo_is_honoured_as_it_is():
+    from datetime import timedelta, timezone
+
+    plus_eight = timezone(timedelta(hours=8))
+    assert mtime.in_zone(datetime(2026, 10, 22, 20, 30), plus_eight).date() == date(2026, 10, 23)
+
+
 def test_today_in_is_the_zones_calendar_day():
     assert mtime.today_in(HK) == datetime.now(UTC).astimezone(HK).date()
 

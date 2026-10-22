@@ -9,7 +9,7 @@ the zone Flask's ``models.db.tz`` and every service already assumed - now named 
 from __future__ import annotations
 
 import re
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, tzinfo
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 DEFAULT_ENTITY_TIMEZONE = "Asia/Hong_Kong"
@@ -57,16 +57,17 @@ def validate_timezone(name: str | None) -> str:
     return cleaned
 
 
-def in_zone(value: datetime, zone: ZoneInfo | str | None = None) -> datetime:
-    """``value`` on the wall clock of ``zone`` (a ``ZoneInfo`` or its name; the default when
-    None). A naive value is read as UTC, as every instant is stored."""
+def in_zone(value: datetime, zone: tzinfo | str | None = None) -> datetime:
+    """``value`` on the wall clock of ``zone`` (any ``tzinfo`` - a ``ZoneInfo``, or a pytz zone
+    a scheduler hands over - or a zone name; the default when None). A naive value is read
+    as UTC, as every instant is stored."""
     if value.tzinfo is None:
         value = value.replace(tzinfo=UTC)
-    tz = zone if isinstance(zone, ZoneInfo) else zone_named(zone)
+    tz = zone if isinstance(zone, tzinfo) else zone_named(zone)
     return value.astimezone(tz)
 
 
-def today_in(zone: ZoneInfo | str | None = None) -> date:
+def today_in(zone: tzinfo | str | None = None) -> date:
     """Today's date on ``zone``'s calendar - never the server's."""
     return in_zone(datetime.now(UTC), zone).date()
 
