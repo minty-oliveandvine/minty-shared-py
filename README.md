@@ -10,7 +10,7 @@ the planned `minty-db` package.
 | `minty_shared.logctx`, `minty_shared.log` | stdlib | the one log line, its trace/user/entity/step context, loguru's call shape over `logging` |
 | `minty_shared.config` | stdlib | `APP_ENV`, flags, the `SECRET_KEY` placeholder refusal, `DATABASE_URL` (identifier-only `?schema=`), `S3_URL`, `SMTP_URL`, `PREVIEW_ORIGIN_REGEX`, and Django's `DATABASES`/`EMAIL_*` shapes |
 | `minty_shared.money` | stdlib | `HKD 1,234.50`: the code, a non-breaking space, the currency's places; `format_price` drops a whole `.00`; no currency says so |
-| `minty_shared.time` | stdlib + `tzdata` | `DEFAULT_ENTITY_TIMEZONE`, a stored instant on a company's calendar, `validate_timezone` |
+| `minty_shared.time` | stdlib + `tzdata` | `DEFAULT_ENTITY_TIMEZONE`, a stored instant on a company's calendar, `validate_timezone`, `COUNTRY_TIMEZONES` + `country_timezone` (a company's zone from its country; tracker keeps the same map) |
 | `minty_shared.tokens` | extra `jwt` | `decode_bearer` (60 s clock skew everywhere), `service_assertion`, `assertion_headers` |
 | `minty_shared.django.middleware` | extra `django` | `RequestLoggingMiddleware` (settings `MINTY_HTTP_LOGGER`, optional `MINTY_LOGGABLE_PATH`) |
 | `minty_shared.django.errors` | extra `django` | the envelope below: `register_error_handlers`, `ApiRefusal`, `validation_message`, `field_messages` |

@@ -69,3 +69,26 @@ def test_validate_timezone():
         mtime.validate_timezone("A" * 31)
     with pytest.raises(ValueError, match="isn't one I know"):
         mtime.validate_timezone("Mars/Olympus")
+
+
+def test_every_country_maps_to_a_zone_a_company_may_store():
+    assert len(mtime.COUNTRY_TIMEZONES) > 200
+    for code, zone in mtime.COUNTRY_TIMEZONES.items():
+        assert len(code) == 2 and code.isascii() and code.isupper(), code
+        assert mtime.validate_timezone(zone) == zone, code
+
+
+@pytest.mark.parametrize(
+    ("code", "zone"),
+    [
+        ("HK", "Asia/Hong_Kong"),
+        (" ph ", "Asia/Manila"),
+        ("US", "America/New_York"),
+        ("AU", "Australia/Sydney"),
+        ("ZZ", None),
+        ("", None),
+        (None, None),
+    ],
+)
+def test_country_timezone(code, zone):
+    assert mtime.country_timezone(code) == zone
