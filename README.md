@@ -13,6 +13,8 @@ the planned `minty-db` package.
 | `minty_shared.time` | stdlib + `tzdata` | `DEFAULT_ENTITY_TIMEZONE`, a stored instant on a company's calendar, `validate_timezone`, `COUNTRY_TIMEZONES` + `country_timezone` (a company's zone from its country; tracker keeps the same map) |
 | `minty_shared.tokens` | extra `jwt` | `decode_bearer` (60 s clock skew everywhere), `service_assertion`, `assertion_headers` |
 | `minty_shared.storage` | extra `storage` | `put_file`: one file into B2 byte for byte (no downsizing, no conversion), ContentType set, retried twice; `make_client`; `StorageError` |
+| `minty_shared.ai` | extra `ai` | the Gemini engine every document reader shares: `ReaderConfig(prefix)` (`<PREFIX>_ENABLED`, `_MODEL`, ... read per call), `read` (cache-ordered request, one retry for retryable classes only), `RateLimiter`, `field`/`band`, `REASON_*`, `log_read` (numbers, never values), `sniff_mime` |
+| `minty_shared.model_input` | extra `ai` | `prepare_for_model`: the small copy a model reads (image capped at 2048 px and saved once as JPEG, decoded at reduced scale when large; PDF page 1). Never the stored file |
 | `minty_shared.django.middleware` | extra `django` | `RequestLoggingMiddleware` (settings `MINTY_HTTP_LOGGER`, optional `MINTY_LOGGABLE_PATH`) |
 | `minty_shared.django.errors` | extra `django` | the envelope below: `register_error_handlers`, `ApiRefusal`, `validation_message`, `field_messages` |
 | `minty_shared.django.client` | extra `django` | `forward`/`proxy`: call another Minty backend as the current caller |
